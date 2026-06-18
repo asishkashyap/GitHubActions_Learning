@@ -12,6 +12,8 @@ on:
   pull_request:
     branches:
       - main 
+    types:
+      - closed
 
 jobs:   #---highest structure to design workflow or pipeline in github as cpmapred ADO in which Stages considered top.
 
@@ -32,3 +34,10 @@ jobs:   #---highest structure to design workflow or pipeline in github as cpmapr
         run: |                             # | ----> used to add multiple scripts
           echo Add other actions to build,
           echo test, and deploy your project.
+
+      - name: Check the Code in Repo
+        run: |
+          echo "Checking Code in the Repository"
+          pwd
+          ls -a 
+
