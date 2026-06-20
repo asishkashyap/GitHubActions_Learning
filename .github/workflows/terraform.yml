@@ -1,4 +1,4 @@
-name: 'Terraform Azure Deploy'
+name: "Terraform Azure Deploy"
 
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   terraform_plan:
-    name: 'Terraform Plan'
+    name: "Terraform Plan"
     runs-on: ubuntu-latest
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -23,40 +23,44 @@ jobs:
       ARM_USE_OIDC: true
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.9.0 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
 
-    - name: Terraform Format Check
-      run: terraform fmt -check
-      working-directory: ./terraform_infra
-      continue-on-error: true
+      - name: Terraform Format Check
+        run: terraform fmt -check
+        working-directory: ./terraform_infra
+        continue-on-error: true
 
-    - name: Terraform Init
-      run: terraform init
-      working-directory: ./terraform_infra
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform_infra
 
-    - name: Terraform Validate
-      run: terraform validate -no-color
-      working-directory: ./terraform_infra
+      - name: Terraform Validate
+        run: terraform validate -no-color
+        working-directory: ./terraform_infra
 
-    - name: Terraform Plan
-      run: terraform plan -no-color
-      working-directory: ./terraform_infra
+      # Generates a plan file named 'tfplan' and saves it
+      - name: Terraform Plan
+        run: terraform plan -no-color -out=tfplan
+        working-directory: ./terraform_infra
+
+      # Upload the generated plan file as a workflow artifact
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: terraform_infra/tfplan
+          retention-days: 1
 
   terraform_apply:
-    name: 'Terraform Apply'
+    name: "Terraform Apply"
     runs-on: ubuntu-latest
     needs: terraform_plan
-    # Only run apply on push to main branch
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    # Enable manual approval by linking this job to a GitHub Environment
-    environment: production
 
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -65,18 +69,27 @@ jobs:
       ARM_USE_OIDC: true
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.9.0 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
 
-    - name: Terraform Init
-      run: terraform init
-      working-directory: ./terraform_infra
+      # Download the plan file uploaded in the previous job
+      - name: Download Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: terraform_infra/
 
-    - name: Terraform Apply
-      run: terraform apply -auto-approve -no-color
-      working-directory: ./terraform_infra
+      # Initialize Terraform again (needed because this job runs on a new runner)
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform_infra
+
+      # Apply using the downloaded plan file
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: ./terraform_infra
