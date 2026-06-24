@@ -1,9 +1,18 @@
-name: "Terraform Azure Deploy"
+name: Terraform Azure Deploy
 
 on:
   push:
     branches:
-      - "main"
+      - main
+  workflow_dispatch:
+
+
+# name: "Terraform Azure Deploy"
+
+# on:
+#   push:
+#     branches:
+#       - "main"
 
 
 permissions:
