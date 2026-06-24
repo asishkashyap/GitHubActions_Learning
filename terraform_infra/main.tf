@@ -24,3 +24,16 @@ resource "azurerm_resource_group" "rg1" {
   name     = "rg-dhondhu"
   location = "Central India"
 }
+
+resource "azurerm_storage_account" "stgAcc" {
+  depends_on = [ azurerm_resource_group.rg1 ]
+  name                     = "storageaccountname12345"
+  resource_group_name      = "rg-dhondhu"
+  location                 = "Central India"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "dev"
+  }
+}
