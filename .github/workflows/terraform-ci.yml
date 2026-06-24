@@ -1,9 +1,9 @@
 name: "Terraform Azure Deploy"
 
 on:
-  push:
+  pull_request:
     branches:
-      - "main"
+      - main
 
 
 permissions:
@@ -31,12 +31,16 @@ jobs:
         # with:
         #   terraform_version: 
 
-      - name: Terraform Infra Deploy
-        run: |
-          terraform init
-          terraform validate
-          terraform plan
-          terraform apply --auto-approve
+      - name: Terraform Init
+        run: terraform Init
+        working-directory: ./terraform_infra
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ./terraform_infra
+
+      - name: Terraform Plan
+        run: terraform plan
         working-directory: ./terraform_infra
       
 

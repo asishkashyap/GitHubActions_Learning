@@ -1,0 +1,42 @@
+name: "Terraform Azure Deploy"
+
+on:
+  push:
+    branches:
+      - "main"
+
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  TerraformWorkFlow:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.0
+
+      - name: Azure login
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: HashiCorp - Setup Terraform
+        uses: hashicorp/setup-terraform@v2.0.3
+        # with:
+        #   terraform_version: 
+
+      - name: Terraform Init
+        run: terraform Init
+        working-directory: ./terraform_infra
+
+      - name: Terraform Apply
+        run: terraform apply --auto-approve
+        working-directory: ./terraform_infra
+      
+
+
