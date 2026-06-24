@@ -31,7 +31,7 @@ jobs:
         #   terraform_version: 
 
       - name: Terraform Init
-        run: terraform Init
+        run: terraform init
         working-directory: ./terraform_infra
 
       - name: Terraform Apply
